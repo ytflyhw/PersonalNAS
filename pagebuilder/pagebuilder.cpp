@@ -131,16 +131,21 @@ void PageBuilder::buildVideoPage()
 
 	html.insert(srcInsertLoc + 24, m_url.substr(0,nameLoc) + "/" + srcName + "_mp4tom3u8/" + srcName +".m3u8");
 	html.insert(titleInsertLoc + 7, srcName);
+
+	
 	// 切片资源
-	string mkdirControl = "mkdir " + m_doc_root + m_url.substr(0,nameLoc) + "/" + srcName + "_mp4tom3u8";
-	cout << mkdirControl << endl;
-	system(mkdirControl.c_str());
-	string ffmpegControl1 = "ffmpeg -y -i " + m_doc_root + m_url.substr(0, urlLoc) +
-		".mp4  -vcodec copy -acodec copy -vbsf h264_mp4toannexb " + m_doc_root + m_url.substr(0,nameLoc) + "/" + srcName + "_mp4tom3u8/" + srcName + ".ts";
-	system(ffmpegControl1.c_str());
-	string ffmpegControl2 = "ffmpeg -i " + m_doc_root + m_url.substr(0,nameLoc) + "/" + srcName + "_mp4tom3u8/" + srcName + ".ts -c copy -map 0 -f segment -segment_list " + m_doc_root +
-		m_url.substr(0,nameLoc) + "/" + srcName + "_mp4tom3u8/" + srcName + ".m3u8 -segment_time 20 " + m_doc_root + m_url.substr(0, nameLoc) + "/" + srcName + "_mp4tom3u8/" + srcName + "1s_%5d.ts";
-	system(ffmpegControl2.c_str());
+	string dir = m_doc_root + m_url.substr(0,nameLoc) + "/" + srcName + "_mp4tom3u8";
+
+	if (access(dir.c_str(), 0) == -1){
+		string mkdirControl = "mkdir " + m_doc_root + m_url.substr(0,nameLoc) + "/" + srcName + "_mp4tom3u8";
+		system(mkdirControl.c_str());
+		string ffmpegControl1 = "ffmpeg -y -i " + m_doc_root + m_url.substr(0, urlLoc) +
+			".mp4  -vcodec copy -acodec copy -vbsf h264_mp4toannexb " + m_doc_root + m_url.substr(0,nameLoc) + "/" + srcName + "_mp4tom3u8/" + srcName + ".ts";
+		system(ffmpegControl1.c_str());
+		string ffmpegControl2 = "ffmpeg -i " + m_doc_root + m_url.substr(0,nameLoc) + "/" + srcName + "_mp4tom3u8/" + srcName + ".ts -c copy -map 0 -f segment -segment_list " + m_doc_root +
+			m_url.substr(0,nameLoc) + "/" + srcName + "_mp4tom3u8/" + srcName + ".m3u8 -segment_time 20 " + m_doc_root + m_url.substr(0, nameLoc) + "/" + srcName + "_mp4tom3u8/" + srcName + "1s_%5d.ts";
+		system(ffmpegControl2.c_str());
+	}
 
 	// 保存页面
 	ofstream ofs;
