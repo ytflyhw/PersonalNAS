@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>CodeYU</title>
+	<link href="/htmlSrc/css/index.css" rel="stylesheet" type="text/css">
+	<script src="/htmlSrc/js/index.js"></script>
+</head>
+<body style="overflow-y:scroll;">
+	<h1>CodeYU-NAS</h1>
+	<hr/>
+	<table>
+	<tr>
+	<td>
+	<div class="col-sm-5">
+		<label class="btn" type="button">
+			<span>上 传</span>
+			<input type="file" id="file">
+		</label>
+	</div>
+	</td>
+	<td>
+	<div class="main">
+	<label class="btn" type="button" id="btn_1">
+		<span>新 建</span>
+	</label>
+	<div class="form_1">
+		<form >
+		<div class="input_1"><div class="login_logo">新建文件夹</div><div class="close">X</div></div>
+		<hr>
+		<div class="input_1"><input type="text" id="foldername" placeholder="&nbsp;文件夹名"></div>
+		<div class="input_1"><input class="submit_1" type="button" value="新&nbsp;建" onclick="mkdir()"></div>
+		</form>
+	</div>
+	</div>
+	</td>
+	<tr>
+	</table>
+
+	<div class="container">
+		<div class="progressbar">
+			<progress value="0" max="100" id="progressbar" class="control"></progress>
+			<span id="percent-label" class="text">0%</span>
+		</div>
+
+		<div class="upload-result" id="upload-result">
+			
+		</div>
+	</div>
+
+	<table class="filetable">
+	</table>
+</body>
+<script>
+	var quit = 0;
+	var progressBar = document.getElementById('progressbar');
+	var progressDiv = document.getElementById('percent-label');
+	document.querySelector("#file").addEventListener("change",function () {undefined
+        
+        var file = document.querySelector("#file").files[0];
+		quit = 0;
+		xhrSend(file, 0);
+    });
+
+	function xhrSend(file, start){
+		var uploadedSize = Math.min(start, file.size);
+		var percentComplete = Math.round(uploadedSize * 100 / file.size);
+		progressBar.value = percentComplete;
+		progressDiv.innerHTML = percentComplete.toString() + '%';
+
+		if (start >= file.size)
+		{
+			location.reload();
+			return;
+		}
+		sleep(50);
+		const LENGTH = 1024 * 50;
+		var end = start + LENGTH;
+		var fd = new FormData();
+		var xhr = new XMLHttpRequest();
+		xhr.open("post","./");
+		var blob = file.slice(start,end);
+		var temp = new File([blob], file.name);
+		fd.append('file',temp);
+		fd.append('name', file.name);
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState==4){
+				var next = end;
+				if(xhr.status==200){
+					quit = 0;
+				}
+				else {
+					next = start;
+					quit++;
+				}
+				xhrSend(file, next);
+			}
+		};
+		
+		xhr.send(fd);
+	}
+
+	function filedelete(filename){
+		var deletexhr = new XMLHttpRequest();
+		deletexhr.open("post","./");
+		var msg = "delete:" + filename + ";";
+		deletexhr.send(msg);
+		deletexhr.onreadystatechange = function () {
+			if (deletexhr.readyState==4 && deletexhr.status==200){
+				location.reload();
+			}
+		}
+	}
+
+	function mkdir(){
+		var foldername = document.getElementById("foldername").value;
+		var mkdirxhr = new XMLHttpRequest();
+		mkdirxhr.open("post", "./");
+		var msg = "mkdir:" + foldername + ";";
+		mkdirxhr.send(msg);
+		mkdirxhr.onreadystatechange = function () {
+			if (mkdirxhr.readyState==4 && mkdirxhr.status==200){
+				location.reload();
+			}
+		}
+	}
+
+	function sleep(numberMillis) { 
+	var now = new Date(); 
+	var exitTime = now.getTime() + numberMillis; 
+	while (true) { 
+	now = new Date(); 
+	if (now.getTime() > exitTime) 
+	return; 
+	} 
+	}
+
+</script>
+</html>
